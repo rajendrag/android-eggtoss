@@ -16,40 +16,19 @@ import com.san.rp.eggtoss.model.components.Speed;
  * @author Rajendra
  *
  */
-public class Egg {
+public class Egg extends Actor{
 
-	private Bitmap bitmap;	// the actual bitmap
-	private int x;			// the X coordinate
-	private int y;			// the Y coordinate
+	//private Bitmap bitmap;	// the actual bitmap
+	//private int x;			// the X coordinate
+	//private int y;			// the Y coordinate
 	private boolean touched;	// if droid is touched/picked up
-	private Speed speed;	// the speed with its directions
+	//private Speed speed;	// the speed with its directions
 	private boolean flying;
 	
 	public Egg(Bitmap bitmap, int x, int y) {
-		this.bitmap = bitmap;
-		this.x = x;
-		this.y = y - (bitmap.getHeight() / 2);
-		this.speed = new Speed();
+		super(bitmap, x, y);
 	}
 	
-	public Bitmap getBitmap() {
-		return bitmap;
-	}
-	public void setBitmap(Bitmap bitmap) {
-		this.bitmap = bitmap;
-	}
-	public int getX() {
-		return x;
-	}
-	public void setX(int x) {
-		this.x = x;
-	}
-	public int getY() {
-		return y;
-	}
-	public void setY(int y) {
-		this.y = y;
-	}
 
 	public boolean isTouched() {
 		return touched;
@@ -58,39 +37,28 @@ public class Egg {
 	public void setTouched(boolean touched) {
 		this.touched = touched;
 	}
-	
-	public Speed getSpeed() {
-		return speed;
-	}
-
-	public void setSpeed(Speed speed) {
-		this.speed = speed;
-	}
-
-	public void draw(Canvas canvas) {
-		canvas.drawBitmap(bitmap, x - (bitmap.getWidth() / 2), y - (bitmap.getHeight() / 2), null);
-	}
 
 	/**
 	 * Method which updates the droid's internal state every tick
 	 */
+	@Override
 	public void update() {
 		applyGravity();
 		if (!touched) {
-			x += (speed.getXv() * speed.getxDirection()); 
-			y += (speed.getYv() * speed.getyDirection());
+			setX(getX() + (int)(getSpeed().getXv() * getSpeed().getxDirection())); 
+			setY(getY() + (int)(getSpeed().getYv() * getSpeed().getyDirection()));
 		}
 	}
 	
 	public void applyGravity() {
 		if(flying) {
-			float cv = speed.getYv();
+			float cv = getSpeed().getYv();
 			String direction = null;
-			if(speed.getyDirection() == Speed.DIRECTION_UP) {
-				speed.setYv(cv-1);
+			if(getSpeed().getyDirection() == Speed.DIRECTION_UP) {
+				getSpeed().setYv(cv-1);
 				direction = "up";
 			} else {
-				speed.setYv(cv+1);
+				getSpeed().setYv(cv+1);
 				direction = "down";
 			}
 			Log.d("Direction & speed=", direction+" & "+ cv);
@@ -104,8 +72,8 @@ public class Egg {
 	 * @param eventY - the event's Y coordinate
 	 */
 	public void handleActionDown(int eventX, int eventY) {
-		if (eventX >= (x - bitmap.getWidth() / 2) && (eventX <= (x + bitmap.getWidth()/2))) {
-			if (eventY >= (y - bitmap.getHeight() / 2) && (y <= (y + bitmap.getHeight() / 2))) {
+		if (eventX >= (getX() - bitmap.getWidth() / 2) && (eventX <= (getX() + bitmap.getWidth()/2))) {
+			if (eventY >= (getY() - bitmap.getHeight() / 2) && (getY() <= (getY() + bitmap.getHeight() / 2))) {
 				// droid touched
 				setTouched(true);
 			} else {
@@ -117,6 +85,9 @@ public class Egg {
 
 	}
 
+	public void intersect() {
+		
+	}
 	public boolean isFlying() {
 		return flying;
 	}

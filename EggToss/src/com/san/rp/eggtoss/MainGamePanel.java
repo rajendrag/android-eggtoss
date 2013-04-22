@@ -3,7 +3,9 @@
  */
 package com.san.rp.eggtoss;
 
-import android.app.Activity;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.san.rp.eggtoss.model.Bowl;
 import com.san.rp.eggtoss.model.Egg;
 import com.san.rp.eggtoss.model.components.Speed;
 
@@ -27,9 +30,14 @@ public class MainGamePanel extends SurfaceView implements
 	
 	private static final String TAG = MainGamePanel.class.getSimpleName();
 	
+	//minimum distance between bowls
+	private static final int BOWL_DISTANCE = 150;
+	
 	private GameThread thread;
 	private Egg egg;
-
+	
+	private List<Bowl> bowls = new ArrayList<Bowl>();
+	
 	public MainGamePanel(Context context) {
 		super(context);
 		// adding the callback (this) to the surface holder to intercept events
@@ -53,7 +61,11 @@ public class MainGamePanel extends SurfaceView implements
 		// at this point the surface is created and
 		// we can safely start the game loop
 		egg = new Egg(BitmapFactory.decodeResource(getResources(), R.drawable.egg), getWidth()/2, getHeight());
-				
+		//Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, 400);
+		//bowls.add(bowl);
+		addNewBowl();
+		addNewBowl();
+		addNewBowl();
 		thread.setRunning(true);
 		thread.start();
 	}
@@ -113,6 +125,9 @@ public class MainGamePanel extends SurfaceView implements
 	public void render(Canvas canvas) {
 		canvas.drawColor(Color.BLACK);
 		egg.draw(canvas);
+		for(Bowl bowl : bowls) {
+			bowl.draw(canvas);
+		}
 	}
 
 	/**
@@ -121,6 +136,7 @@ public class MainGamePanel extends SurfaceView implements
 	 * engine's update method.
 	 */
 	public void update() {
+		
 		// check collision with right wall if heading right
 		if (egg.getSpeed().getxDirection() == Speed.DIRECTION_RIGHT
 				&& egg.getX() + egg.getBitmap().getWidth() / 2 >= getWidth()) {
@@ -142,10 +158,10 @@ public class MainGamePanel extends SurfaceView implements
 		}
 		// check collision with top wall if heading up
 		if (egg.getSpeed().getyDirection() == Speed.DIRECTION_UP) {
-			//egg.getSpeed().setYv(egg.getSpeed().getYv() - 1);
-			//if((egg.getSpeed().getYv() <= 0) || (egg.getY() - egg.getBitmap().getHeight() / 2 <= 0)) {
 			if((egg.getY() - egg.getBitmap().getHeight() / 2 <= 0)) {
+				Log.d("Hits top", "Hitstop"+egg.toString());
 				egg.getSpeed().toggleYDirection();
+				egg.getSpeed().setYv(1f);
 			} else if (egg.isFlying() && egg.getSpeed().getYv() <= 0) {
 				egg.getSpeed().toggleYDirection();
 			}
@@ -153,6 +169,44 @@ public class MainGamePanel extends SurfaceView implements
 		}
 		// Update the lone egg
 		egg.update();
+		if(egg.isFlying()) {
+			detectCollision();
+		}
+	}
+
+	private void detectCollision() {
+		//for(int i = 0; i < bowls.size(); i++) {
+		for(int i = bowls.size() -1; i >= 0; i--) {
+			Bowl bowl = bowls.get(i);
+			if (egg.getSpeed().getyDirection() == Speed.DIRECTION_DOWN) {
+				Log.d("DetectCollesion Bowl"+i, bowl.toString());
+				int delta = (int)(bowl.getBottomEdge() - (egg.getBottomEdge() + egg.getSpeed().getYv()));
+				Log.d("Delta", delta+"");
+				if (delta>= -5 && delta <= 5) {
+					//String debug = "Egg"+egg.toString()+" and Bowl"+bowl.toString()+"";
+					//Log.d("Colliding", debug);
+					int y = bowl.getTopEdge()-(int)(egg.getBitmap().getHeight()/2);
+					Log.d("Resetting Y", y+"");
+					egg.setY(y);
+					egg.getSpeed().setYv(0);
+					//egg.setY(bowl.getTopEdge());
+					egg.getSpeed().setyDirection(Speed.DIRECTION_UP);
+					egg.setFlying(false);
+				}
+			}
+			
+		}
+	}
+	
+	private void addNewBowl() {
+		if(bowls.size() == 0) {
+			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, getHeight() - BOWL_DISTANCE);
+			bowls.add(bowl);
+		} else {
+			Bowl previous = bowls.get(bowls.size() - 1);
+			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, previous.getY() - BOWL_DISTANCE);
+			bowls.add(bowl);
+		}
 	}
 
 }

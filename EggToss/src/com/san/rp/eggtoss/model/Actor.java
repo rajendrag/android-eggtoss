@@ -19,6 +19,9 @@ public class Actor {
 	private int x;			// the X coordinate
 	private int y;			// the Y coordinate
 	
+	private int parentHeight;			// the X coordinate
+	private int parentWidth;			// the Y coordinate
+	
 	private Speed speed;	// the speed with its directions
 	
 	//these are define the bounderies of the bitmap
@@ -28,11 +31,13 @@ public class Actor {
 	private int rightEdge;
 	private int leftEdge;
 	
-	public Actor(Bitmap bitmap, int x, int y) {
+	public Actor(Bitmap bitmap, int x, int y, int parentHeight, int parentWidth) {
 		this.bitmap = bitmap;
 		this.setX(x);
 		this.setY(y - (bitmap.getHeight() / 2));
 		this.speed = new Speed();
+		this.parentHeight=parentHeight;
+		this.parentWidth=parentWidth;
 	}
 	
 	public void draw(Canvas canvas) {
@@ -111,5 +116,13 @@ public class Actor {
 	@Override
 	public String toString() {
 		return "(x,y)=>("+x+","+y+")";
+	}
+	
+	public int getParentHeight(){
+		return parentHeight;
+	}
+	
+	public int getParentWidth(){
+		return parentWidth;
 	}
 }

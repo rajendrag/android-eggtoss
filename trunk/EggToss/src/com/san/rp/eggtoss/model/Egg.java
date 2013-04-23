@@ -4,7 +4,6 @@
 package com.san.rp.eggtoss.model;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -25,8 +24,8 @@ public class Egg extends Actor{
 	//private Speed speed;	// the speed with its directions
 	private boolean flying;
 	
-	public Egg(Bitmap bitmap, int x, int y) {
-		super(bitmap, x, y);
+	public Egg(Bitmap bitmap, int x, int y, int parentHeight, int parentWidth) {
+		super(bitmap, x, y, parentHeight,parentWidth);
 	}
 	
 
@@ -47,6 +46,37 @@ public class Egg extends Actor{
 		if (!touched) {
 			setX(getX() + (int)(getSpeed().getXv() * getSpeed().getxDirection())); 
 			setY(getY() + (int)(getSpeed().getYv() * getSpeed().getyDirection()));
+		}
+		
+		// check collision with right wall if heading right
+		if (getSpeed().getxDirection() == Speed.DIRECTION_RIGHT
+				&& getX() + getBitmap().getWidth() / 2 >= getParentWidth()) {
+			getSpeed().toggleXDirection();
+		}
+		// check collision with left wall if heading left
+		if (getSpeed().getxDirection() == Speed.DIRECTION_LEFT
+				&& getX() - getBitmap().getWidth() / 2 <= 0) {
+			getSpeed().toggleXDirection();
+		}
+		// check collision with bottom wall if heading down
+		if (getSpeed().getyDirection() == Speed.DIRECTION_DOWN) {
+			//getSpeed().setYv(getSpeed().getYv() + 1);
+			if (getY() + getBitmap().getHeight() / 2 >= getParentHeight()) {
+				getSpeed().toggleYDirection();
+				getSpeed().setYv(0);
+				setFlying(false);
+			}
+		}
+		// check collision with top wall if heading up
+		if (getSpeed().getyDirection() == Speed.DIRECTION_UP) {
+			if((getY() - getBitmap().getHeight() / 2 <= 0)) {
+				Log.d("Hits top", "Hitstop"+toString());
+				getSpeed().toggleYDirection();
+				getSpeed().setYv(1f);
+			} else if (isFlying() && getSpeed().getYv() <= 0) {
+				getSpeed().toggleYDirection();
+			}
+			
 		}
 	}
 	

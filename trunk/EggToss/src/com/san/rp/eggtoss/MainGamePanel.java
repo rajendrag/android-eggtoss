@@ -60,7 +60,7 @@ public class MainGamePanel extends SurfaceView implements
 	public void surfaceCreated(SurfaceHolder holder) {
 		// at this point the surface is created and
 		// we can safely start the game loop
-		egg = new Egg(BitmapFactory.decodeResource(getResources(), R.drawable.egg), getWidth()/2, getHeight());
+		egg = new Egg(BitmapFactory.decodeResource(getResources(), R.drawable.egg), getWidth()/2, getHeight(), getHeight(), getWidth());
 		//Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, 400);
 		//bowls.add(bowl);
 		addNewBowl();
@@ -93,6 +93,10 @@ public class MainGamePanel extends SurfaceView implements
 		if(!egg.isFlying()) {
 			egg.getSpeed().setYv(20f);
 			egg.setFlying(true);
+			for(Bowl bowl : bowls) {
+				bowl.getSpeed().setXv(10f);
+			}
+			
 		}
 		/*
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -136,39 +140,12 @@ public class MainGamePanel extends SurfaceView implements
 	 * engine's update method.
 	 */
 	public void update() {
-		
-		// check collision with right wall if heading right
-		if (egg.getSpeed().getxDirection() == Speed.DIRECTION_RIGHT
-				&& egg.getX() + egg.getBitmap().getWidth() / 2 >= getWidth()) {
-			egg.getSpeed().toggleXDirection();
-		}
-		// check collision with left wall if heading left
-		if (egg.getSpeed().getxDirection() == Speed.DIRECTION_LEFT
-				&& egg.getX() - egg.getBitmap().getWidth() / 2 <= 0) {
-			egg.getSpeed().toggleXDirection();
-		}
-		// check collision with bottom wall if heading down
-		if (egg.getSpeed().getyDirection() == Speed.DIRECTION_DOWN) {
-			//egg.getSpeed().setYv(egg.getSpeed().getYv() + 1);
-			if (egg.getY() + egg.getBitmap().getHeight() / 2 >= getHeight()) {
-				egg.getSpeed().toggleYDirection();
-				egg.getSpeed().setYv(0);
-				egg.setFlying(false);
-			}
-		}
-		// check collision with top wall if heading up
-		if (egg.getSpeed().getyDirection() == Speed.DIRECTION_UP) {
-			if((egg.getY() - egg.getBitmap().getHeight() / 2 <= 0)) {
-				Log.d("Hits top", "Hitstop"+egg.toString());
-				egg.getSpeed().toggleYDirection();
-				egg.getSpeed().setYv(1f);
-			} else if (egg.isFlying() && egg.getSpeed().getYv() <= 0) {
-				egg.getSpeed().toggleYDirection();
-			}
-			
-		}
+				
 		// Update the lone egg
 		egg.update();
+		for(Bowl bowl : bowls) {
+			bowl.update();
+		}
 		if(egg.isFlying()) {
 			detectCollision();
 		}
@@ -200,11 +177,13 @@ public class MainGamePanel extends SurfaceView implements
 	
 	private void addNewBowl() {
 		if(bowls.size() == 0) {
-			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, getHeight() - BOWL_DISTANCE);
+			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, getHeight() - BOWL_DISTANCE, getHeight(), getWidth());
+			bowl.getSpeed().setxDirection(Speed.DIRECTION_RIGHT);
 			bowls.add(bowl);
 		} else {
 			Bowl previous = bowls.get(bowls.size() - 1);
-			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, previous.getY() - BOWL_DISTANCE);
+			Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, previous.getY() - BOWL_DISTANCE,getHeight(), getWidth());
+			bowl.getSpeed().setxDirection(previous.getSpeed().getxDirection()*-1);
 			bowls.add(bowl);
 		}
 	}

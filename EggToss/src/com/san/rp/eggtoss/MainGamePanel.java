@@ -17,6 +17,7 @@ import android.view.SurfaceView;
 
 import com.san.rp.eggtoss.model.Bowl;
 import com.san.rp.eggtoss.model.Egg;
+import com.san.rp.eggtoss.model.components.Point;
 import com.san.rp.eggtoss.model.components.Speed;
 
 /**
@@ -35,6 +36,7 @@ public class MainGamePanel extends SurfaceView implements
 	
 	private GameThread thread;
 	private Egg egg;
+	private boolean surfaceCreated=false;
 	
 	private List<Bowl> bowls = new ArrayList<Bowl>();
 	
@@ -42,10 +44,7 @@ public class MainGamePanel extends SurfaceView implements
 		super(context);
 		// adding the callback (this) to the surface holder to intercept events
 		getHolder().addCallback(this);
-
-		// create the game loop thread
-		thread = new GameThread(getHolder(), this);
-		
+		surfaceCreated=false;
 		// make the GamePanel focusable so it can handle events
 		setFocusable(true);
 	}
@@ -60,39 +59,45 @@ public class MainGamePanel extends SurfaceView implements
 	public void surfaceCreated(SurfaceHolder holder) {
 		// at this point the surface is created and
 		// we can safely start the game loop
-		egg = new Egg(BitmapFactory.decodeResource(getResources(), R.drawable.egg), getWidth()/2, getHeight(), getHeight(), getWidth());
-		//Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, 400);
-		//bowls.add(bowl);
-		addNewBowl();
-		addNewBowl();
-		addNewBowl();
+		 if (surfaceCreated == false)
+	        {
+			 	egg = new Egg(BitmapFactory.decodeResource(getResources(), R.drawable.egg), getWidth()/2, getHeight(), getHeight(), getWidth());
+				//Bowl bowl = new Bowl(BitmapFactory.decodeResource(getResources(), R.drawable.bowl), getWidth()/2, 400);
+				//bowls.add(bowl);
+				addNewBowl();
+				addNewBowl();
+				addNewBowl();
+	            createGameThread();
+	            surfaceCreated = true;
+	        }	
+	}
+
+	public void createGameThread(){
+		if(null==thread || thread.getState()==Thread.State.TERMINATED) {
+			// create the game loop thread
+			thread = new GameThread(getHolder(), this);
+		}
 		thread.setRunning(true);
 		thread.start();
 	}
-
+	
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		Log.d(TAG, "Surface is being destroyed");
-		// tell the thread to shut down and wait for it to finish
-		// this is a clean shutdown
-		boolean retry = true;
-		while (retry) {
-			try {
-				thread.join();
-				retry = false;
-			} catch (InterruptedException e) {
-				// try again shutting down the thread
-			}
-		}
-		Log.d(TAG, "Thread was shut down cleanly");
+		surfaceCreated = false;
 	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		Log.d("Touch:", "==>x,y="+egg.getX()+","+egg.getY());
 		if(!egg.isFlying()) {
+			Point touchedAt=new Point((int)event.getX(0),(int)event.getY(0));
 			egg.getSpeed().setYv(20f);
+			egg.setStart(new Point(100,700));
+			egg.setMiddle(touchedAt);
+			egg.setEnd(new Point(300,700));
 			egg.setFlying(true);
+			Log.d("touch location ", touchedAt.toString());
 			for(Bowl bowl : bowls) {
 				bowl.getSpeed().setXv(10f);
 			}
@@ -143,12 +148,12 @@ public class MainGamePanel extends SurfaceView implements
 				
 		// Update the lone egg
 		egg.update();
-		for(Bowl bowl : bowls) {
+		/*for(Bowl bowl : bowls) {
 			bowl.update();
 		}
 		if(egg.isFlying()) {
 			detectCollision();
-		}
+		}*/
 	}
 
 	private void detectCollision() {
@@ -186,6 +191,19 @@ public class MainGamePanel extends SurfaceView implements
 			bowl.getSpeed().setxDirection(previous.getSpeed().getxDirection()*-1);
 			bowls.add(bowl);
 		}
+	}
+	
+	public void stopThread() {
+		thread.setRunning(false);
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			Log.e("MainGamePannel-StopThread", "terminateThread corrupts");
+		}
+	}
+	
+	public boolean isSurfaceCreated(){
+		return surfaceCreated;
 	}
 
 }

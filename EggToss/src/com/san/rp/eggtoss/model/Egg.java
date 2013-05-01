@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import com.san.rp.eggtoss.model.components.BezierUtil;
+import com.san.rp.eggtoss.model.components.Point;
 import com.san.rp.eggtoss.model.components.Speed;
 
 /**
@@ -23,6 +25,10 @@ public class Egg extends Actor{
 	private boolean touched;	// if droid is touched/picked up
 	//private Speed speed;	// the speed with its directions
 	private boolean flying;
+	private float interpolatedTime=0;
+	private Point start;
+	private Point end;
+	private Point middle;
 	
 	public Egg(Bitmap bitmap, int x, int y, int parentHeight, int parentWidth) {
 		super(bitmap, x, y, parentHeight,parentWidth);
@@ -42,10 +48,25 @@ public class Egg extends Actor{
 	 */
 	@Override
 	public void update() {
-		applyGravity();
+		
+		if(interpolatedTime>1 || start==null){
+			interpolatedTime=0;
+			setFlying(false);
+		}else {
+			interpolatedTime+=.04;
+		}
+		
+		if(!isFlying())
+			return;
+		
+		applyGravity();		
+		
 		if (!touched) {
-			setX(getX() + (int)(getSpeed().getXv() * getSpeed().getxDirection())); 
-			setY(getY() + (int)(getSpeed().getYv() * getSpeed().getyDirection()));
+			/*setX(getX() + (int)(getSpeed().getXv() * getSpeed().getxDirection())); 
+			setY(getY() + (int)(getSpeed().getYv() * getSpeed().getyDirection()));*/
+			setX((int)(BezierUtil.calcBezier(interpolatedTime, start.getX(), middle.getX(), end.getX()))); 
+			setY((int)(BezierUtil.calcBezier(interpolatedTime, start.getY(),middle.getY(),end.getY())));
+			Log.d("Updated Egg status :  "+interpolatedTime,this.toString());
 		}
 		
 		// check collision with right wall if heading right
@@ -59,14 +80,14 @@ public class Egg extends Actor{
 			getSpeed().toggleXDirection();
 		}
 		// check collision with bottom wall if heading down
-		if (getSpeed().getyDirection() == Speed.DIRECTION_DOWN) {
+		//if (getSpeed().getyDirection() == Speed.DIRECTION_DOWN) {
 			//getSpeed().setYv(getSpeed().getYv() + 1);
 			if (getY() + getBitmap().getHeight() / 2 >= getParentHeight()) {
 				getSpeed().toggleYDirection();
 				getSpeed().setYv(0);
 				setFlying(false);
 			}
-		}
+		//}
 		// check collision with top wall if heading up
 		if (getSpeed().getyDirection() == Speed.DIRECTION_UP) {
 			if((getY() - getBitmap().getHeight() / 2 <= 0)) {
@@ -125,4 +146,36 @@ public class Egg extends Actor{
 	public void setFlying(boolean flying) {
 		this.flying = flying;
 	}
+
+
+	public Point getStart() {
+		return start;
+	}
+
+
+	public void setStart(Point start) {
+		this.start = start;
+	}
+
+
+	public Point getEnd() {
+		return end;
+	}
+
+
+	public void setEnd(Point end) {
+		this.end = end;
+	}
+
+
+	public Point getMiddle() {
+		return middle;
+	}
+
+
+	public void setMiddle(Point middle) {
+		this.middle = middle;
+	}
+	
+	
 }

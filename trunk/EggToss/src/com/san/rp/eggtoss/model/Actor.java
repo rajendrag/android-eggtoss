@@ -19,8 +19,8 @@ public class Actor {
 	private int x;			// the X coordinate
 	private int y;			// the Y coordinate
 	
-	private int parentHeight;			// the X coordinate
-	private int parentWidth;			// the Y coordinate
+	private int parentHeight;			
+	private int parentWidth;			
 	
 	private Speed speed;	// the speed with its directions
 	

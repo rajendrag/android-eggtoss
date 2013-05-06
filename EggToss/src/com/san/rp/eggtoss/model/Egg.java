@@ -25,10 +25,16 @@ public class Egg extends Actor{
 	private boolean touched;	// if droid is touched/picked up
 	//private Speed speed;	// the speed with its directions
 	private boolean flying;
-	private float interpolatedTime=0;
 	private Point start;
 	private Point end;
 	private Point middle;
+	
+	//time vars in milliseconds.
+	private long flyTime=2000; 
+	private long flyStartedAt;
+	private float interpolatedTime=0;
+	private int eggWidth=20;
+	
 	
 	public Egg(Bitmap bitmap, int x, int y, int parentHeight, int parentWidth) {
 		super(bitmap, x, y, parentHeight,parentWidth);
@@ -51,9 +57,10 @@ public class Egg extends Actor{
 		
 		if(interpolatedTime>1 || start==null){
 			interpolatedTime=0;
+			flyStartedAt=0;
 			setFlying(false);
 		}else {
-			interpolatedTime+=.04;
+			interpolatedTime=(System.currentTimeMillis()-flyStartedAt)/(flyTime*1.0f);
 		}
 		
 		if(!isFlying())
@@ -64,8 +71,14 @@ public class Egg extends Actor{
 		if (!touched) {
 			/*setX(getX() + (int)(getSpeed().getXv() * getSpeed().getxDirection())); 
 			setY(getY() + (int)(getSpeed().getYv() * getSpeed().getyDirection()));*/
-			setX((int)(BezierUtil.calcBezier(interpolatedTime, start.getX(), middle.getX(), end.getX()))); 
-			setY((int)(BezierUtil.calcBezier(interpolatedTime, start.getY(),middle.getY(),end.getY())));
+			int xValToSet = (int)(BezierUtil.calcBezier(interpolatedTime, start.getX(), middle.getX(), end.getX()));
+			int yValToSet = (int)(BezierUtil.calcBezier(interpolatedTime, start.getY(),middle.getY(),end.getY()));
+			if(xValToSet-10<0)
+				xValToSet=0;
+			if(xValToSet+eggWidth>getParentWidth())
+				xValToSet=getParentWidth()-eggWidth;
+			setX(xValToSet); 
+			setY(yValToSet);
 			Log.d("Updated Egg status :  "+interpolatedTime,this.toString());
 		}
 		
@@ -175,6 +188,16 @@ public class Egg extends Actor{
 
 	public void setMiddle(Point middle) {
 		this.middle = middle;
+	}
+
+
+	public long getFlyStartedAt() {
+		return flyStartedAt;
+	}
+
+
+	public void setFlyStartedAt(long flyStartedAt) {
+		this.flyStartedAt = flyStartedAt;
 	}
 	
 	

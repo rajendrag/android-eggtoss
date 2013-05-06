@@ -89,15 +89,22 @@ public class MainGamePanel extends SurfaceView implements
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		if (event.getAction() != MotionEvent.ACTION_DOWN &&
+                event.getAction() != MotionEvent.ACTION_MOVE) {
+            return false;
+        }
 		Log.d("Touch:", "==>x,y="+egg.getX()+","+egg.getY());
 		if(!egg.isFlying()) {
-			Point touchedAt=new Point((int)event.getX(0),(int)event.getY(0));
+			Point touchedAt=new Point((int)event.getX(),2*(int)event.getY());
 			egg.getSpeed().setYv(20f);
-			egg.setStart(new Point(100,700));
+			Point start=new Point(egg.getX(),egg.getY());//new Point(100,700));
+			egg.setStart(start);
+			egg.setFlyStartedAt(System.currentTimeMillis());
 			egg.setMiddle(touchedAt);
-			egg.setEnd(new Point(300,700));
+			egg.setEnd(new Point(start.getX()+2*((int)event.getX()-start.getX()),start.getY()));
 			egg.setFlying(true);
 			Log.d("touch location ", touchedAt.toString());
+			Log.d("start "+egg.getStart()+" middle="+egg.getMiddle()+" end="+egg.getEnd(),"****** All points");
 			for(Bowl bowl : bowls) {
 				bowl.getSpeed().setXv(10f);
 			}

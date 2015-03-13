@@ -9,8 +9,6 @@ package com.san.rp.eggtoss.model.components;
  * and the directions on those. An object with the ability
  * to move will contain this class and the move method will
  * update its position according to the speed. 
- *   
- * @author impaler
  *
  */
 public class Speed {
